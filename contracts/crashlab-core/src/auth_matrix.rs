@@ -143,7 +143,7 @@ mod tests {
         CrashSignature {
             category: "runtime-failure",
             digest,
-            signature_hash: digest, // Using digest as a stable placeholder for tests
+            signature_hash: 0,
         }
     }
 
