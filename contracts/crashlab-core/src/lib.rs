@@ -1,6 +1,9 @@
 pub mod reproducer;
 pub use reproducer::{filter_ci_pack, FlakyDetector, ReproReport};
 
+pub mod seed_validator;
+pub use seed_validator::{SeedSchema, SeedValidationError, Validate};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CaseSeed {
     pub id: u64,
