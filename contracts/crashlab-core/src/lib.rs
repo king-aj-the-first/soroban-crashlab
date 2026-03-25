@@ -1,9 +1,13 @@
 pub mod auth_matrix;
+pub mod health;
 pub mod prng;
 pub mod reproducer;
 pub mod taxonomy;
 
 pub use auth_matrix::{AuthMode, MatrixReport, ModeResult, collect_mismatched, run_matrix};
+pub use health::{
+    FailureMetrics, HealthMonitor, HealthStatus, HealthSummary, QueueMetrics, ThroughputMetrics,
+};
 pub use reproducer::{FlakyDetector, ReproReport, filter_ci_pack};
 pub use taxonomy::{FailureClass, classify_failure, group_by_class};
 
@@ -20,6 +24,8 @@ pub use env_fingerprint::{
 };
 pub mod boundary;
 pub use boundary::{BoundaryMutator, generate_boundary_vectors};
+
+use prng::SeededPrng;
 
 /// Wrapper for the legacy bit-flipper mutation logic.
 pub struct DefaultMutator;
