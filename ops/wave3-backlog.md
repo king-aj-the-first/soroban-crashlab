@@ -14,7 +14,7 @@ This backlog is intentionally scoped for contributor onboarding and maintainer t
 
 - `area:fuzzer`: mutation quality, seed management, campaign control, deterministic parallelism
 - `area:runtime`: replay reliability, metadata integrity, retention, and run health
-- `area:generator`: fixture export, shrinking, signature grouping, regression packs
+- `area:generator`: fixture export, shrinking, signature grouping, regression packs, fixture compatibility checking (#56)
 - `area:web`: dashboard observability, triage UX, replay controls, and reporting views
 - `area:docs`: reproducibility, onboarding, complexity rubric, release and debugging docs
 - `area:ops`: triage cadence, issue hygiene, SLA visibility, and maintainer governance
