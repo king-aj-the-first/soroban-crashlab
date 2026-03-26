@@ -17,6 +17,9 @@ pub use seed_validator::{SeedSchema, SeedValidationError, Validate};
 
 pub mod scheduler;
 pub use scheduler::{Mutator, SchedulerError, WeightedScheduler};
+
+pub mod campaign_presets;
+pub use campaign_presets::{CampaignParameters, CampaignPreset, ParseCampaignPresetError};
 pub mod replay;
 pub use replay::{ReplayResult, replay_seed_bundle};
 
