@@ -55,6 +55,9 @@ pub use corpus::{
     CORPUS_ARCHIVE_SCHEMA_VERSION,
 };
 
+pub mod scenario_export;
+pub use scenario_export::{FailureScenario, export_scenario_json};
+
 pub mod simulation;
 pub use simulation::{
     run_simulation_with_timeout, timeout_crash_signature, RunMetadata, SimulationTimeoutConfig,
