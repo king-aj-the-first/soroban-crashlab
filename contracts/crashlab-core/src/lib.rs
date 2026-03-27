@@ -84,6 +84,9 @@ pub use run_control::{
     clear_cancel_request, default_state_dir, drive_run, request_cancel_run,
 };
 
+pub mod rpc_envelope;
+pub use rpc_envelope::{RpcEnvelopeCapture, RpcRequestEnvelope, RpcResponseEnvelope};
+
 /// Wrapper for the legacy bit-flipper mutation logic.
 pub struct DefaultMutator;
 
@@ -138,6 +141,8 @@ pub struct CaseBundle {
     pub environment: Option<EnvironmentFingerprint>,
     /// Raw failure output (stderr, host error bytes, trace snippet, etc.).
     pub failure_payload: Vec<u8>,
+    /// Captured RPC request/response envelopes for reproducibility auditing.
+    pub rpc_envelope: Option<RpcEnvelopeCapture>,
 }
 
 impl CaseBundle {
@@ -190,6 +195,7 @@ pub fn to_bundle(seed: CaseSeed) -> CaseBundle {
         signature,
         environment: None,
         failure_payload: Vec::new(),
+        rpc_envelope: None,
     }
 }
 
@@ -203,6 +209,20 @@ pub fn to_bundle_with_environment(seed: CaseSeed) -> CaseBundle {
         signature,
         environment,
         failure_payload: Vec::new(),
+        rpc_envelope: None,
+    }
+}
+
+/// Like [`to_bundle`], but attaches an RPC envelope capture for reproducibility auditing.
+pub fn to_bundle_with_rpc_envelope(seed: CaseSeed, envelope: RpcEnvelopeCapture) -> CaseBundle {
+    let mutated = mutate_seed(&seed);
+    let signature = classify(&mutated);
+    CaseBundle {
+        seed: mutated,
+        signature,
+        environment: None,
+        failure_payload: Vec::new(),
+        rpc_envelope: Some(envelope),
     }
 }
 

@@ -442,6 +442,7 @@ mod tests {
             signature: anchor_signature(&seed),
             environment: None,
             failure_payload: vec![],
+            rpc_envelope: None,
         };
 
         let shrunk = shrink_bundle_payload(&bundle, anchor_signature);

@@ -108,6 +108,7 @@ mod tests {
             signature: sig,
             environment: None,
             failure_payload: vec![],
+            rpc_envelope: None,
         }
     }
 
