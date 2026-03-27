@@ -9,13 +9,13 @@ use serde::{Deserialize, Serialize};
 pub struct FailureScenario {
     /// Unique identifier for the seed that produced this failure.
     pub seed_id: u64,
-    
+
     /// Input payload as a hex-encoded string for JSON compatibility.
     pub input_payload: String,
-    
+
     /// Execution mode or context (e.g., "invoker", "contract", "none").
     pub mode: String,
-    
+
     /// Expected failure classification (e.g., "runtime-failure", "empty-input").
     pub failure_class: String,
 }
@@ -48,6 +48,10 @@ impl FailureScenario {
 ///
 /// A JSON string representation of the failure scenario, or an error if serialization fails.
 ///
+/// This exports the raw bundle payload. For public sharing, prefer
+/// [`crate::export_sanitized_scenario_json`] so secret-like fragments are
+/// scrubbed before the payload is hex-encoded into JSON.
+///
 /// # Example
 ///
 /// ```rust
@@ -66,10 +70,82 @@ pub fn export_scenario_json(
     serde_json::to_string_pretty(&scenario)
 }
 
+fn is_valid_rust_ident(name: &str) -> bool {
+    let mut chars = name.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    if !(first == '_' || first.is_ascii_alphabetic()) {
+        return false;
+    }
+    chars.all(|c| c == '_' || c.is_ascii_alphanumeric())
+}
+
+/// Exports a failing bundle as a Rust regression test fixture snippet.
+///
+/// The emitted snippet is deterministic and intended for inclusion in an
+/// integration test harness that depends on `crashlab-core`.
+pub fn export_rust_regression_fixture(
+    bundle: &CaseBundle,
+    test_name: &str,
+) -> Result<String, String> {
+    if !is_valid_rust_ident(test_name) {
+        return Err(
+            "invalid test name: must be a non-empty Rust identifier (a-z, A-Z, 0-9, _)".into(),
+        );
+    }
+
+    let payload_literal = if bundle.seed.payload.is_empty() {
+        String::new()
+    } else {
+        bundle
+            .seed
+            .payload
+            .iter()
+            .map(|b| format!("0x{b:02x}"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+
+    Ok(format!(
+        r#"#[test]
+fn {test_name}() {{
+    use crashlab_core::{{replay_seed_bundle, CaseBundle, CaseSeed, CrashSignature}};
+
+    let bundle = CaseBundle {{
+        seed: CaseSeed {{
+            id: {seed_id},
+            payload: vec![{payload_literal}],
+        }},
+        signature: CrashSignature {{
+            category: {category:?}.to_string(),
+            digest: {digest},
+            signature_hash: {signature_hash},
+        }},
+        environment: None,
+        failure_payload: vec![],
+    }};
+
+    let result = replay_seed_bundle(&bundle);
+    assert_eq!(result.actual.category, {category:?});
+    assert_eq!(result.actual.digest, {digest});
+    assert_eq!(result.actual.signature_hash, {signature_hash});
+    assert!(result.matches, "replay should match exported failing bundle signature");
+}}
+"#,
+        test_name = test_name,
+        seed_id = bundle.seed.id,
+        payload_literal = payload_literal,
+        category = bundle.signature.category,
+        digest = bundle.signature.digest,
+        signature_hash = bundle.signature.signature_hash
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{to_bundle, CaseSeed};
+    use crate::{CaseSeed, to_bundle};
 
     #[test]
     fn scenario_contains_all_required_fields() {
@@ -77,9 +153,9 @@ mod tests {
             id: 123,
             payload: vec![0xAA, 0xBB, 0xCC],
         });
-        
+
         let scenario = FailureScenario::from_bundle(&bundle, "invoker");
-        
+
         assert_eq!(scenario.seed_id, 123);
         assert!(!scenario.input_payload.is_empty());
         assert_eq!(scenario.mode, "invoker");
@@ -92,11 +168,16 @@ mod tests {
             id: 1,
             payload: vec![0x01, 0x02, 0x03],
         });
-        
+
         let scenario = FailureScenario::from_bundle(&bundle, "contract");
-        
+
         // After mutation, payload will be different, but should still be valid hex
-        assert!(scenario.input_payload.chars().all(|c| c.is_ascii_hexdigit()));
+        assert!(
+            scenario
+                .input_payload
+                .chars()
+                .all(|c| c.is_ascii_hexdigit())
+        );
         assert_eq!(scenario.input_payload.len() % 2, 0); // Even length for hex
     }
 
@@ -106,9 +187,9 @@ mod tests {
             id: 42,
             payload: vec![1, 2, 3, 4],
         });
-        
+
         let json = export_scenario_json(&bundle, "none").unwrap();
-        
+
         // Verify it's valid JSON by parsing it back
         let parsed: FailureScenario = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.seed_id, 42);
@@ -121,9 +202,9 @@ mod tests {
             id: 999,
             payload: vec![0xFF],
         });
-        
+
         let json = export_scenario_json(&bundle, "invoker").unwrap();
-        
+
         assert!(json.contains("\"seed_id\""));
         assert!(json.contains("\"input_payload\""));
         assert!(json.contains("\"mode\""));
@@ -138,9 +219,9 @@ mod tests {
             id: 7,
             payload: vec![],
         });
-        
+
         let scenario = FailureScenario::from_bundle(&bundle, "contract");
-        
+
         assert_eq!(scenario.seed_id, 7);
         assert_eq!(scenario.input_payload, ""); // Empty hex string
         assert_eq!(scenario.failure_class, "empty-input");
@@ -152,11 +233,11 @@ mod tests {
             id: 1,
             payload: vec![1],
         });
-        
+
         let scenario_invoker = FailureScenario::from_bundle(&bundle, "invoker");
         let scenario_contract = FailureScenario::from_bundle(&bundle, "contract");
         let scenario_none = FailureScenario::from_bundle(&bundle, "none");
-        
+
         assert_eq!(scenario_invoker.mode, "invoker");
         assert_eq!(scenario_contract.mode, "contract");
         assert_eq!(scenario_none.mode, "none");
@@ -168,10 +249,36 @@ mod tests {
             id: 50,
             payload: vec![1; 100], // Oversized
         });
-        
+
         let scenario = FailureScenario::from_bundle(&bundle, "invoker");
-        
+
         assert_eq!(scenario.failure_class, bundle.signature.category);
     }
-}
 
+    #[test]
+    fn rust_fixture_export_contains_regression_test_shape() {
+        let bundle = to_bundle(CaseSeed {
+            id: 42,
+            payload: vec![0x0A, 0x0B, 0x0C],
+        });
+
+        let fixture = export_rust_regression_fixture(&bundle, "seed_42_runtime").unwrap();
+
+        assert!(fixture.contains("fn seed_42_runtime()"));
+        assert!(fixture.contains("CaseSeed"));
+        assert!(fixture.contains("replay_seed_bundle"));
+        assert!(fixture.contains("assert_eq!(result.actual.category"));
+        assert!(fixture.contains("runtime-failure"));
+    }
+
+    #[test]
+    fn rust_fixture_export_rejects_invalid_test_name() {
+        let bundle = to_bundle(CaseSeed {
+            id: 8,
+            payload: vec![1, 2, 3],
+        });
+
+        let err = export_rust_regression_fixture(&bundle, "seed 8 bad name").unwrap_err();
+        assert!(err.contains("test name"));
+    }
+}

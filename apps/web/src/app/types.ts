@@ -2,6 +2,8 @@
  * Status variants for a fuzzing run.
  */
 export type RunStatus = 'running' | 'completed' | 'failed' | 'cancelled';
+export type RunArea = 'auth' | 'state' | 'budget' | 'xdr';
+export type RunSeverity = 'low' | 'medium' | 'high' | 'critical';
 
 /**
  * Crash details captured when a run fails.
@@ -25,6 +27,10 @@ export interface FuzzingRun {
     id: string;
     /** Current state of the run */
     status: RunStatus;
+    /** Product area primarily exercised by the run */
+    area: RunArea;
+    /** Highest observed severity level for the run */
+    severity: RunSeverity;
     /** Total elapsed duration in milliseconds */
     duration: number;
     /** Number of seeds used/generated during the run */

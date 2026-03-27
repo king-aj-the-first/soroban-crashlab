@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FuzzingRun } from './types';
 import { simulateSeedReplay } from './replay';
 
@@ -18,17 +18,9 @@ export default function CrashDetailDrawer({ run, onClose, onReplayComplete }: Cr
     const [replayStatus, setReplayStatus] = useState<ReplayUiStatus>('idle');
     const [replayRunId, setReplayRunId] = useState<string | null>(null);
     const [replayError, setReplayError] = useState<string | null>(null);
-    const replayStatusRef = useRef(replayStatus);
-    replayStatusRef.current = replayStatus;
-
-    useEffect(() => {
-        setReplayStatus('idle');
-        setReplayRunId(null);
-        setReplayError(null);
-    }, [run.id]);
 
     const handleReplay = useCallback(async () => {
-        if (!run.crashDetail || replayStatusRef.current === 'running') return;
+        if (!run.crashDetail || replayStatus === 'running') return;
         setReplayError(null);
         setReplayRunId(null);
         setReplayStatus('running');
@@ -39,15 +31,20 @@ export default function CrashDetailDrawer({ run, onClose, onReplayComplete }: Cr
             onReplayComplete?.({
                 id: newRunId,
                 status: 'completed',
+                area: run.area,
+                severity: run.severity,
                 duration: 0,
                 seedCount: 1,
                 crashDetail: null,
+                cpuInstructions: 0,
+                memoryBytes: 0,
+                minResourceFee: 0,
             });
         } catch {
             setReplayStatus('failed');
             setReplayError('Replay could not be started. Try again.');
         }
-    }, [run.crashDetail, run.id, onReplayComplete]);
+    }, [onReplayComplete, replayStatus, run]);
 
     const canReplay = Boolean(run.crashDetail);
 

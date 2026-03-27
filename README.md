@@ -50,6 +50,10 @@ cargo test
 
 Persist a [`RunCheckpoint`](contracts/crashlab-core/src/checkpoint.rs) (JSON) with `next_seed_index` and reload it after an interruption. Use `RunCheckpoint::remaining(&seeds)` to iterate only pending seeds, and `advance_one` / `advance_by` after each completed item so resumed runs skip finished work.
 
+### Artifact retention policy
+
+Apply configurable retention windows for old run artifacts with [`RetentionPolicy`](contracts/crashlab-core/src/retention.rs). Configure `max_failure_bundles` to keep the most recent failures (sorted by descending seed ID) and `max_checkpoints_per_campaign` to retain the most advanced checkpoints per campaign. Use `RetentionPolicy::retain_failure_bundles` and `RetentionPolicy::retain_checkpoints` to determine which artifacts to prune.
+
 ### Corpus export (portable seed archive)
 
 Export a deterministic, sorted corpus JSON (schema `CORPUS_ARCHIVE_SCHEMA_VERSION`) via `export_corpus_json` / `import_corpus_json`, or the CLI:
