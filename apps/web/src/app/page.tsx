@@ -9,6 +9,7 @@ import Pagination from './Pagination';
 import CrashDetailDrawer from './CrashDetailDrawer';
 import CreateRunHeatmapPage55 from './create-run-heatmap-page-55';
 import { FuzzingRun, RunStatus } from './types';
+import CrossRunBoardWidgets from './implement-cross-run-board-widgets-component';
 
 const ITEMS_PER_PAGE = 10;
 const CPU_WARNING = 900_000;
@@ -290,6 +291,10 @@ function HomeContent() {
 
   return (
     <div className="flex flex-col items-center justify-center py-20 px-8 max-w-5xl mx-auto w-full">
+      {/* Cross-run board widgets section */}
+      <div className="w-full mb-12">
+        <CrossRunBoardWidgets />
+      </div>
       <div className="text-center max-w-3xl mb-16">
         <h1 className="text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Bulletproof Your Soroban Smart Contracts
