@@ -4,8 +4,8 @@
 //! that fail due to transient network or RPC errors (e.g., rate limits, timeouts,
 //! server-side 5xx responses).
 
-use std::time::Duration;
 use crate::prng::SeededPrng;
+use std::time::Duration;
 
 /// Classification of errors encountered during simulation or RPC calls.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -80,10 +80,10 @@ where
             Ok(val) => return Ok(val),
             Err(e) if e.is_transient() && attempt < config.max_attempts => {
                 let backoff = calculate_backoff(config, attempt, prng.as_deref_mut());
-                
+
                 #[cfg(not(test))]
                 std::thread::sleep(backoff);
-                
+
                 // In tests, we might want to avoid actual sleep to keep them fast.
                 // However, the prompt implies "bounded retry strategy... in the soroban-crashlab runtime".
                 // If we are in a library, sleep is usually avoided unless it's a dedicated executor.

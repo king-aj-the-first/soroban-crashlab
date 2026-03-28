@@ -315,7 +315,7 @@ mod tests {
             if mode == AuthMode::Enforce {
                 Ok(sig(1))
             } else {
-                Ok(sig(2) )
+                Ok(sig(2))
             }
         })
         .unwrap();

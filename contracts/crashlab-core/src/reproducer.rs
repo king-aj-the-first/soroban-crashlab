@@ -76,7 +76,11 @@ impl FlakyDetector {
     ///
     /// Returns [`SimulationError`] if a run fails after all retry attempts or
     /// if a non-transient error is encountered.
-    pub fn check<F>(&self, bundle: &CaseBundle, mut reproducer: F) -> Result<ReproReport, SimulationError>
+    pub fn check<F>(
+        &self,
+        bundle: &CaseBundle,
+        mut reproducer: F,
+    ) -> Result<ReproReport, SimulationError>
     where
         F: FnMut(&CaseSeed) -> Result<CrashSignature, SimulationError>,
     {
@@ -199,7 +203,10 @@ where
 ///
 /// Returns [`SimulationError`] if a run fails after all retry attempts or
 /// if a non-transient error is encountered.
-pub fn shrink_bundle_payload<F>(bundle: &CaseBundle, reproducer: F) -> Result<CaseBundle, SimulationError>
+pub fn shrink_bundle_payload<F>(
+    bundle: &CaseBundle,
+    reproducer: F,
+) -> Result<CaseBundle, SimulationError>
 where
     F: FnMut(&CaseSeed) -> Result<CrashSignature, SimulationError>,
 {
@@ -211,7 +218,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{CaseSeed, CrashSignature, to_bundle};
+    use crate::{to_bundle, CaseSeed, CrashSignature};
     use std::cell::Cell;
 
     fn make_bundle(id: u64, payload: Vec<u8>) -> CaseBundle {
@@ -233,7 +240,9 @@ mod tests {
         let bundle = make_bundle(1, vec![1, 2, 3]);
         let detector = FlakyDetector::new(10, 0.0);
 
-        let report = detector.check(&bundle, |_| Ok(bundle.signature.clone())).unwrap();
+        let report = detector
+            .check(&bundle, |_| Ok(bundle.signature.clone()))
+            .unwrap();
 
         assert_eq!(report.runs, 10);
         assert_eq!(report.stable_count, 10);
@@ -260,16 +269,18 @@ mod tests {
         let detector = FlakyDetector::new(4, 0.6);
         let counter = Cell::new(0u32);
 
-        let report = detector.check(&bundle, |_| {
-            let n = counter.get();
-            counter.set(n + 1);
-            // Even calls reproduce correctly; odd calls diverge → 2/4 stable.
-            if n % 2 == 0 {
-                Ok(bundle.signature.clone())
-            } else {
-                Ok(divergent_sig())
-            }
-        }).unwrap();
+        let report = detector
+            .check(&bundle, |_| {
+                let n = counter.get();
+                counter.set(n + 1);
+                // Even calls reproduce correctly; odd calls diverge → 2/4 stable.
+                if n % 2 == 0 {
+                    Ok(bundle.signature.clone())
+                } else {
+                    Ok(divergent_sig())
+                }
+            })
+            .unwrap();
 
         assert_eq!(report.stable_count, 2);
         assert!((report.flake_rate - 0.5).abs() < f64::EPSILON);
@@ -283,15 +294,17 @@ mod tests {
         let detector = FlakyDetector::new(10, 0.3);
         let counter = Cell::new(0u32);
 
-        let report = detector.check(&bundle, |_| {
-            let n = counter.get();
-            counter.set(n + 1);
-            if n < 7 {
-                Ok(bundle.signature.clone())
-            } else {
-                Ok(divergent_sig())
-            }
-        }).unwrap();
+        let report = detector
+            .check(&bundle, |_| {
+                let n = counter.get();
+                counter.set(n + 1);
+                if n < 7 {
+                    Ok(bundle.signature.clone())
+                } else {
+                    Ok(divergent_sig())
+                }
+            })
+            .unwrap();
 
         assert_eq!(report.stable_count, 7);
         assert!((report.flake_rate - 0.3).abs() < f64::EPSILON);
@@ -305,15 +318,17 @@ mod tests {
         let detector = FlakyDetector::new(10, 0.2);
         let counter = Cell::new(0u32);
 
-        let report = detector.check(&bundle, |_| {
-            let n = counter.get();
-            counter.set(n + 1);
-            if n < 6 {
-                Ok(bundle.signature.clone())
-            } else {
-                Ok(divergent_sig())
-            }
-        }).unwrap();
+        let report = detector
+            .check(&bundle, |_| {
+                let n = counter.get();
+                counter.set(n + 1);
+                if n < 6 {
+                    Ok(bundle.signature.clone())
+                } else {
+                    Ok(divergent_sig())
+                }
+            })
+            .unwrap();
 
         assert_eq!(report.stable_count, 6);
         assert!(!report.is_stable);
@@ -325,16 +340,18 @@ mod tests {
         let detector = FlakyDetector::new(2, 0.0);
         let counter = Cell::new(0u32);
 
-        let report = detector.check(&bundle, |_| {
-            let n = counter.get();
-            counter.set(n + 1);
-            // Fail first two attempts of the first run
-            if n < 2 {
-                Err(SimulationError::Transient("rpc timeout".to_string()))
-            } else {
-                Ok(bundle.signature.clone())
-            }
-        }).unwrap();
+        let report = detector
+            .check(&bundle, |_| {
+                let n = counter.get();
+                counter.set(n + 1);
+                // Fail first two attempts of the first run
+                if n < 2 {
+                    Err(SimulationError::Transient("rpc timeout".to_string()))
+                } else {
+                    Ok(bundle.signature.clone())
+                }
+            })
+            .unwrap();
 
         assert_eq!(report.stable_count, 2);
         assert_eq!(counter.get(), 4); // 1st run: 3 attempts (2 fail, 1 success), 2nd run: 1 attempt
@@ -359,7 +376,8 @@ mod tests {
             } else {
                 Ok(divergent_sig())
             }
-        }).unwrap();
+        })
+        .unwrap();
 
         assert_eq!(pack.len(), 1);
         assert_eq!(pack[0].seed.id, stable_id);
@@ -383,7 +401,8 @@ mod tests {
             } else {
                 Ok(sig2.clone())
             }
-        }).unwrap();
+        })
+        .unwrap();
 
         assert_eq!(pack.len(), 2);
     }
