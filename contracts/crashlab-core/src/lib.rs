@@ -85,7 +85,9 @@ pub use scenario_export::{
 
 pub mod simulation;
 pub use simulation::{
-    RunMetadata, SimulationTimeoutConfig, run_simulation_with_timeout, timeout_crash_signature,
+    RunMetadata, RunMetadataError, SimulationTimeoutConfig, load_run_metadata_json,
+    run_simulation_with_timeout, save_run_metadata_json, timeout_crash_signature,
+    RUN_METADATA_SCHEMA_VERSION, SUPPORTED_RUN_METADATA_SCHEMAS,
 };
 
 pub mod container_stress;
