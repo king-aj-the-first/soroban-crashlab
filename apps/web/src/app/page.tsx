@@ -19,6 +19,7 @@ import CrossRunBoardWidgets from './implement-cross-run-board-widgets-component'
 import CrossRunBoardCustomWidgets from './create-cross-run-board-custom-widgets-63';
 import RunClusterVisualization from './add-run-cluster-visualization';
 import RunClusterOverview from './add-run-cluster-overview';
+import ImplementRunWorkflowBoardPage58 from './implement-run-workflow-board-page-58';
 import FailureClusterView from './FailureClusterView';
 import MaintainerToggle from './MaintainerToggle';
 import { useMaintainerMode } from './useMaintainerMode';
@@ -414,6 +415,10 @@ function HomeContent() {
         />
       </div>
 
+      {/* Run workflow board section */}
+      <div className="w-full mb-12">
+        <ImplementRunWorkflowBoardPage58 runs={runs} />
+      </div>
       {/* Cross-run board widgets section — maintainer only */}
       {isMaintainer && (
         <div className="w-full mb-12">
