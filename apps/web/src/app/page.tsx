@@ -29,6 +29,7 @@ import ColumnCustomization, { ColumnId } from './add-column-customization';
 import IssueTriageBoard from './add-issue-triage-board-ui';
 import CampaignMilestoneTimeline from './campaign-milestone-timeline-55';
 import VirtualizedRunTable from './implement-virtualized-run-table-component';
+import ReportingTemplatesManager from './add-reporting-templates-manager';
 import AutomatedRegressionDeployIntegration from './integrate-automated-regression-deploy-integration';
 
 // Mock data for demonstration
@@ -669,6 +670,10 @@ function HomeContent() {
 
       <div className="mb-12 w-full">
         <CreateReportingTemplatesPage60 />
+      </div>
+
+      <div className="mb-12 w-full">
+        <ReportingTemplatesManager />
       </div>
 
       <div className="mb-12 w-full">
