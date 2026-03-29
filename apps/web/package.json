@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "npx tsc src/app/failureClusters.ts src/app/failureClusters.test.ts src/app/types.ts --module commonjs --target es2020 --outDir build/test-tmp --esModuleInterop && node build/test-tmp/failureClusters.test.js"
+    "test": "npx tsc src/app/failureClusters.ts src/app/failureClusters.test.ts src/app/types.ts src/app/log-viewer-utils.ts src/app/log-viewer-utils.test.ts --module commonjs --target es2020 --outDir build/test-tmp --esModuleInterop && node build/test-tmp/failureClusters.test.js && node build/test-tmp/log-viewer-utils.test.js"
   },
   "dependencies": {
     "next": "16.1.6",

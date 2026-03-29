@@ -71,7 +71,7 @@ export default function AddRunStatusTimeline({ runs }: RunStatusTimelineProps) {
         <div className="absolute left-6 top-2 bottom-2 w-0.5 bg-zinc-200 dark:bg-zinc-800" aria-hidden="true" />
 
         <div className="space-y-8">
-          {recentRuns.map((run, index) => (
+          {recentRuns.map((run) => (
             <div key={run.id} className="relative pl-14 group">
               {/* Timeline marker */}
               <div className={`absolute left-0 top-1 h-12 w-12 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 z-10 ${STATUS_COLORS[run.status]}`}>
